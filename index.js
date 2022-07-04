@@ -1,12 +1,10 @@
 const puppeteer = require('puppeteer');
 const fs = require("fs");
+const url = require("url");
 
 
-async function getCookieForFile(filepath, domainurl) {
+async function getCookieForFile(filepath, targetDomain) {
     const fs = require('fs');
-    const url = require('url')
-
-    const uri = url.parse(domainurl)
     let text = fs.readFileSync(filepath);
     let cookies = [];
 
@@ -19,13 +17,21 @@ async function getCookieForFile(filepath, domainurl) {
             const cookie = {
                 'name': cookieAry[0],
                 'value': cookieAry[1],
-                'domain': uri.host,
+                'domain': targetDomain,
             }
             cookies.push(cookie);
         }
     }
 
     return cookies;
+}
+
+function convertUrlToFilename(uri) {
+    if (uri.path === "/") {
+        return uri.host
+    } else {
+        return uri.path.replaceAll("/", "_").slice(1)
+    }
 }
 
 
@@ -48,18 +54,22 @@ async function getCookieForFile(filepath, domainurl) {
     const page = await browser.newPage();
 
     for (let idx in lines) {
-        let targeturl = lines[idx].replaceAll("\n", "")
-        if (targeturl === "") {
+        let targetUrl = lines[idx].replaceAll("\n", "")
+        if (targetUrl === "") {
             continue
         }
 
-        const cookies = await getCookieForFile("cookie.txt", targeturl)
+        const url = require('url')
+        const uri = url.parse(targetUrl)
+
+        const cookies = await getCookieForFile("cookie.txt", uri.host)
 
         await page.setCookie(...cookies);
-        await page.goto(targeturl);
+        await page.goto(targetUrl);
         const date = new Date().toLocaleString('sv').replace(/\D/g, '');
-        const filename = `puppeteer_ss_${date}.png`
-        console.log(`save screenshot. filePath:${filename}, URL:${targeturl}`)
+
+        const filename = `${convertUrlToFilename(uri)}_${date}.png`
+        console.log(`save screenshot. filePath:${filename}, URL:${targetUrl}`)
         await page.screenshot({path: filename, fullPage: true});
     }
 
