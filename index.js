@@ -68,7 +68,7 @@ function convertUrlToFilename(uri) {
         await page.goto(targetUrl);
         const date = new Date().toLocaleString('sv').replace(/\D/g, '');
 
-        const filename = `${convertUrlToFilename(uri)}_${date}.png`
+        const filename = `screenshot/${convertUrlToFilename(uri)}_${date}.png`
         console.log(`save screenshot. filePath:${filename}, URL:${targetUrl}`)
         await page.screenshot({path: filename, fullPage: true});
     }
