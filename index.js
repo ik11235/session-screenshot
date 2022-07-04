@@ -7,11 +7,8 @@ async function getCookieForFile(filepath, domainurl) {
     const url = require('url')
 
     const uri = url.parse(domainurl)
-    //console.log(uri)
-
     let text = fs.readFileSync(filepath);
     let cookies = [];
-    //console.log(text)
 
     let lines = text.toString().split('\n');
 
@@ -23,35 +20,11 @@ async function getCookieForFile(filepath, domainurl) {
                 'name': cookieAry[0],
                 'value': cookieAry[1],
                 'domain': uri.host,
-                //'domain': 'www.example.com', // ドメイン（省略可）
-                //'path': '/' // パス（省略可）
             }
             cookies.push(cookie);
         }
-
-        //   console.log(line);
     }
 
-    /*
-        const stream = fs.createReadStream(filepath);
-
-        const rl = readline.createInterface({
-            input: stream,
-            output: process.stdout,
-            terminal: false,
-        });
-
-        await rl.on("line", (line) => {
-            let cookieAry = line.split('=');
-            const cookie = {
-                'name': cookieAry[0],
-                'value': cookieAry[1],
-                'domain': 'www.example.com', // ドメイン（省略可）
-                'path': '/' // パス（省略可）
-            }
-            cookies.push(cookie);
-        });
-    */
     return cookies;
 }
 
@@ -88,11 +61,7 @@ async function getCookieForFile(filepath, domainurl) {
         const filename = `puppeteer_ss_${date}.png`
         console.log(`save screenshot. filePath:${filename}, URL:${targeturl}`)
         await page.screenshot({path: filename, fullPage: true});
-
-
     }
 
-
     await browser.close();
-
 })();
