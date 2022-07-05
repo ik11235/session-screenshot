@@ -1,26 +1,32 @@
 const puppeteer = require('puppeteer');
-const fs = require("fs");
-const url = require("url");
 
+async function readForFileAndSplitArray(filepath) {
+    const fs = require('fs');
+    const text = fs.readFileSync(filepath);
+    let res = [];
+
+    const lines = text.toString().split('\n');
+    for (let idx in lines) {
+        const line = lines[idx].trim();
+        if (line !== "") {
+            res.push(line);
+        }
+    }
+
+    return res;
+}
 
 async function getCookieForFile(filepath, targetDomain) {
-    const fs = require('fs');
-    let text = fs.readFileSync(filepath);
     let cookies = [];
-
-    let lines = text.toString().split('\n');
+    const lines = await readForFileAndSplitArray(filepath);
 
     for (let idx in lines) {
-        let line = lines[idx].replaceAll("\n", "")
-        let cookieAry = line.split('=');
-        if (cookieAry[0] !== "") {
-            const cookie = {
-                'name': cookieAry[0],
-                'value': cookieAry[1],
-                'domain': targetDomain,
-            }
-            cookies.push(cookie);
+        const line = lines[idx];
+        const cookieAry = line.split('=');
+        const cookie = {
+            'name': cookieAry[0], 'value': cookieAry[1], 'domain': targetDomain,
         }
+        cookies.push(cookie);
     }
 
     return cookies;
@@ -36,32 +42,21 @@ function convertUrlToFilename(uri) {
 
 
 (async () => {
-    const fs = require('fs');
-    let text = fs.readFileSync('target_url_list.txt');
-
-    let lines = text.toString().split('\n');
+    const url = require('url')
 
     const options = {
-        headless: true,
-        defaultViewport: null,
-        args: [
-            '--window-size=1980,800'
-        ]
+        headless: true, defaultViewport: null, args: ['--window-size=1980,800']
     };
-
 
     const browser = await puppeteer.launch(options);
     const page = await browser.newPage();
 
-    for (let idx in lines) {
-        let targetUrl = lines[idx].replaceAll("\n", "")
-        if (targetUrl === "") {
-            continue
-        }
+    const targetUrlList = await readForFileAndSplitArray('target_url_list.txt');
 
-        const url = require('url')
+    for (let idx in targetUrlList) {
+        const targetUrl = targetUrlList[idx]
+
         const uri = url.parse(targetUrl)
-
         const cookies = await getCookieForFile("cookie.txt", uri.host)
 
         await page.setCookie(...cookies);
